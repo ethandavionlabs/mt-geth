@@ -53,7 +53,7 @@ jobs:
       docker_name:
         description: Docker image name
         type: string
-        default: "op-geth"
+        default: "mt-geth"
       docker_tags:
         description: Docker image tags as csv
         type: string
@@ -80,8 +80,8 @@ jobs:
           name: Build and push
           command: |
             RAW_TAGS="<<parameters.docker_tags>>"
-            if [ "$CIRCLE_BRANCH" = "optimism" ]; then
-              RAW_TAGS="$RAW_TAGS,optimism"
+            if [ "$CIRCLE_BRANCH" = "mantle" ]; then
+              RAW_TAGS="$RAW_TAGS,mantle"
             fi
             IMAGE_BASE="<<parameters.registry>>/<<parameters.repo>>/<<parameters.docker_name>>"
             DOCKER_TAGS=$(echo -ne "$RAW_TAGS" | sed "s/,/\n/g" | sed "s/[^a-zA-Z0-9\n.]/-/g" | sed -e "s|^|-t ${IMAGE_BASE}:|")

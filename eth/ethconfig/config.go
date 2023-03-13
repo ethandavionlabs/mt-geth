@@ -209,9 +209,9 @@ type Config struct {
 	// OverrideShanghai (TODO: remove after the fork)
 	OverrideShanghai *uint64 `toml:",omitempty"`
 
-	OverrideOptimismBedrock  *big.Int
-	OverrideOptimismRegolith *uint64 `toml:",omitempty"`
-	OverrideOptimism         *bool
+	OverrideMantleBedrock  *big.Int
+	OverrideMantleRegolith *uint64 `toml:",omitempty"`
+	OverrideMantle         *bool
 
 	RollupSequencerHTTP        string
 	RollupHistoricalRPC        string

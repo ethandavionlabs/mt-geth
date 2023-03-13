@@ -163,16 +163,16 @@ func makeFullNode(ctx *cli.Context) (*node.Node, ethapi.Backend) {
 		cfg.Eth.OverrideShanghai = &v
 	}
 
-	if ctx.IsSet(utils.OverrideOptimismBedrock.Name) {
-		cfg.Eth.OverrideOptimismBedrock = flags.GlobalBig(ctx, utils.OverrideOptimismBedrock.Name)
+	if ctx.IsSet(utils.OverrideMantleBedrock.Name) {
+		cfg.Eth.OverrideMantleBedrock = flags.GlobalBig(ctx, utils.OverrideMantleBedrock.Name)
 	}
-	if ctx.IsSet(utils.OverrideOptimismRegolith.Name) {
-		v := ctx.Uint64(utils.OverrideOptimismRegolith.Name)
-		cfg.Eth.OverrideOptimismRegolith = &v
+	if ctx.IsSet(utils.OverrideMantleRegolith.Name) {
+		v := ctx.Uint64(utils.OverrideMantleRegolith.Name)
+		cfg.Eth.OverrideMantleRegolith = &v
 	}
-	if ctx.IsSet(utils.OverrideOptimism.Name) {
-		override := ctx.Bool(utils.OverrideOptimism.Name)
-		cfg.Eth.OverrideOptimism = &override
+	if ctx.IsSet(utils.OverrideMantle.Name) {
+		override := ctx.Bool(utils.OverrideMantle.Name)
+		cfg.Eth.OverrideMantle = &override
 	}
 
 	backend, eth := utils.RegisterEthService(stack, &cfg.Eth)

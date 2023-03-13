@@ -104,7 +104,7 @@ func applyTransaction(msg types.Message, config *params.ChainConfig, gp *GasPool
 	evm.Reset(txContext, statedb)
 
 	nonce := tx.Nonce()
-	if msg.IsDepositTx() && config.IsOptimismRegolith(evm.Context.Time) {
+	if msg.IsDepositTx() && config.IsMantleRegolith(evm.Context.Time) {
 		nonce = statedb.GetNonce(msg.From())
 	}
 
@@ -134,7 +134,7 @@ func applyTransaction(msg types.Message, config *params.ChainConfig, gp *GasPool
 	receipt.TxHash = tx.Hash()
 	receipt.GasUsed = result.UsedGas
 
-	if msg.IsDepositTx() && config.IsOptimismRegolith(evm.Context.Time) {
+	if msg.IsDepositTx() && config.IsMantleRegolith(evm.Context.Time) {
 		// The actual nonce for deposit transactions is only recorded from Regolith onwards.
 		// Before the Regolith fork the DepositNonce must remain nil
 		receipt.DepositNonce = &nonce

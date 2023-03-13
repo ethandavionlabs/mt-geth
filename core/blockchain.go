@@ -255,8 +255,8 @@ func NewBlockChain(db ethdb.Database, cacheConfig *CacheConfig, genesis *Genesis
 	log.Info(strings.Repeat("-", 153))
 	log.Info("")
 
-	if chainConfig.IsOptimism() && chainConfig.RegolithTime == nil {
-		log.Warn("Optimism RegolithTime has not been set")
+	if chainConfig.IsMantle() && chainConfig.RegolithTime == nil {
+		log.Warn("Mantle RegolithTime has not been set")
 	}
 
 	bc := &BlockChain{

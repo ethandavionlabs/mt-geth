@@ -676,7 +676,7 @@ type Message struct {
 	data       []byte
 	accessList AccessList
 	isFake     bool
-	// Optimism rollup fields
+	// Mantle rollup fields
 	isSystemTx  bool
 	isDepositTx bool
 	mint        *big.Int
@@ -696,7 +696,7 @@ func NewMessage(from common.Address, to *common.Address, nonce uint64, amount *b
 		data:       data,
 		accessList: accessList,
 		isFake:     isFake,
-		// Optimism rollup fields
+		// Mantle rollup fields
 		isSystemTx:  false,
 		isDepositTx: false,
 		mint:        nil,
@@ -717,7 +717,7 @@ func (tx *Transaction) AsMessage(s Signer, baseFee *big.Int) (Message, error) {
 		data:       tx.Data(),
 		accessList: tx.AccessList(),
 		isFake:     false,
-		// Optimism rollup fields
+		// Mantle rollup fields
 		isSystemTx:  tx.inner.isSystemTx(),
 		isDepositTx: tx.IsDepositTx(),
 		mint:        tx.Mint(),

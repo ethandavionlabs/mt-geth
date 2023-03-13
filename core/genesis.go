@@ -268,10 +268,10 @@ func (e *GenesisMismatchError) Error() string {
 // ChainOverrides contains the changes to chain config.
 type ChainOverrides struct {
 	OverrideShanghai *uint64
-	// optimism
-	OverrideOptimismBedrock  *big.Int
-	OverrideOptimismRegolith *uint64
-	OverrideOptimism         *bool
+	// mantle
+	OverrideMantleBedrock  *big.Int
+	OverrideMantleRegolith *uint64
+	OverrideMantle         *bool
 }
 
 // SetupGenesisBlock writes or updates the genesis block in db.
@@ -297,22 +297,22 @@ func SetupGenesisBlockWithOverride(db ethdb.Database, triedb *trie.Database, gen
 	}
 	applyOverrides := func(config *params.ChainConfig) {
 		if config != nil {
-			if config.IsOptimism() && config.ChainID != nil && config.ChainID.Cmp(params.OptimismGoerliChainId) == 0 {
-				// Apply Optimism Goerli regolith time
-				config.RegolithTime = &params.OptimismGoerliRegolithTime
+			if config.IsMantle() && config.ChainID != nil && config.ChainID.Cmp(params.MantleGoerliChainId) == 0 {
+				// Apply Mantle Goerli regolith time
+				config.RegolithTime = &params.MantleGoerliRegolithTime
 			}
 			if overrides != nil && overrides.OverrideShanghai != nil {
 				config.ShanghaiTime = overrides.OverrideShanghai
 			}
-			if overrides != nil && overrides.OverrideOptimismBedrock != nil {
-				config.BedrockBlock = overrides.OverrideOptimismBedrock
+			if overrides != nil && overrides.OverrideMantleBedrock != nil {
+				config.BedrockBlock = overrides.OverrideMantleBedrock
 			}
-			if overrides != nil && overrides.OverrideOptimismRegolith != nil {
-				config.RegolithTime = overrides.OverrideOptimismRegolith
+			if overrides != nil && overrides.OverrideMantleRegolith != nil {
+				config.RegolithTime = overrides.OverrideMantleRegolith
 			}
-			if overrides != nil && overrides.OverrideOptimism != nil {
-				if *overrides.OverrideOptimism {
-					config.Optimism = &params.OptimismConfig{
+			if overrides != nil && overrides.OverrideMantle != nil {
+				if *overrides.OverrideMantle {
+					config.Mantle = &params.MantleConfig{
 						EIP1559Elasticity:  10,
 						EIP1559Denominator: 50,
 					}

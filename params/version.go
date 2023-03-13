@@ -28,7 +28,7 @@ const (
 	VersionMeta  = "stable" // Version metadata to append to the version string
 )
 
-// OPVersion is the version of op-geth
+// OPVersion is the version of mt-geth
 const (
 	OPVersionMajor = 0          // Major version component of the current release
 	OPVersionMinor = 1          // Minor version component of the current release
