@@ -20,6 +20,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/ethereum/go-ethereum/rollup/rcfg"
 	"math/big"
 	"time"
 
@@ -39,6 +41,7 @@ import (
 	"github.com/ethereum/go-ethereum/eth/tracers"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/miner"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -50,6 +53,8 @@ type EthAPIBackend struct {
 	allowUnprotectedTxs bool
 	eth                 *Ethereum
 	gpo                 *gasprice.Oracle
+	UsingBVM            bool
+	MaxCallDataSize     int
 }
 
 // ChainConfig returns the active chain configuration.
@@ -62,7 +67,14 @@ func (b *EthAPIBackend) CurrentBlock() *types.Block {
 }
 
 func (b *EthAPIBackend) SetHead(number uint64) {
-	b.eth.handler.downloader.Cancel()
+	if number == 0 {
+		log.Info("Cannot reset to genesis")
+		return
+	}
+	if !b.UsingBVM {
+		b.eth.handler.downloader.Cancel()
+
+	}
 	b.eth.blockchain.SetHead(number)
 }
 
@@ -228,8 +240,14 @@ func (b *EthAPIBackend) GetTd(ctx context.Context, hash common.Hash) *big.Int {
 }
 
 func (b *EthAPIBackend) GetEVM(ctx context.Context, msg core.Message, state *state.StateDB, header *types.Header, vmConfig *vm.Config) (*vm.EVM, func() error, error) {
+
 	if vmConfig == nil {
 		vmConfig = b.eth.blockchain.GetVMConfig()
+	}
+	// We're throwing this behind a UsingBVM flag for now as to not break
+	// any tests that may depend on this behavior.
+	if !rcfg.UsingBVM {
+		state.SetBalance(msg.From(), math.MaxBig256)
 	}
 	txContext := core.NewEVMTxContext(msg)
 	context := core.NewEVMBlockContext(header, b.eth.BlockChain(), nil)

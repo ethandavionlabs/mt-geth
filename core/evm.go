@@ -17,6 +17,7 @@
 package core
 
 import (
+	"github.com/ethereum/go-ethereum/rollup/rcfg"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -55,6 +56,22 @@ func NewEVMBlockContext(header *types.Header, chain ChainContext, author *common
 	if header.Difficulty.Cmp(common.Big0) == 0 {
 		random = &header.MixDigest
 	}
+	if rcfg.UsingBVM {
+		//TODO: gas fee change for BlockContext need to add like L1BlcokNumber and From
+		return vm.BlockContext{
+			CanTransfer: CanTransfer,
+			Transfer:    Transfer,
+			GetHash:     GetHashFn(header, chain),
+			Coinbase:    beneficiary,
+			BlockNumber: new(big.Int).Set(header.Number),
+			Time:        header.Time,
+			Difficulty:  new(big.Int).Set(header.Difficulty),
+			BaseFee:     baseFee,
+			GasLimit:    header.GasLimit,
+			Random:      random,
+		}
+	}
+
 	return vm.BlockContext{
 		CanTransfer: CanTransfer,
 		Transfer:    Transfer,

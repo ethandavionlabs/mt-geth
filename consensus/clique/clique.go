@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/rollup/rcfg"
 	"io"
 	"math/big"
 	"math/rand"
@@ -248,11 +249,13 @@ func (c *Clique) verifyHeader(chain consensus.ChainHeaderReader, header *types.H
 		return errUnknownBlock
 	}
 	number := header.Number.Uint64()
-
-	// Don't waste time checking blocks from the future
-	if header.Time > uint64(time.Now().Unix()) {
-		return consensus.ErrFutureBlock
+	if !rcfg.UsingBVM {
+		// Don't waste time checking blocks from the future
+		if header.Time > uint64(time.Now().Unix()) {
+			return consensus.ErrFutureBlock
+		}
 	}
+
 	// Checkpoint blocks need to enforce zero beneficiary
 	checkpoint := (number % c.config.Epoch) == 0
 	if checkpoint && header.Coinbase != (common.Address{}) {
@@ -329,9 +332,12 @@ func (c *Clique) verifyCascadingFields(chain consensus.ChainHeaderReader, header
 	if parent == nil || parent.Number.Uint64() != number-1 || parent.Hash() != header.ParentHash {
 		return consensus.ErrUnknownAncestor
 	}
-	if parent.Time+c.config.Period > header.Time {
-		return errInvalidTimestamp
+	if !rcfg.UsingBVM {
+		if parent.Time+c.config.Period > header.Time {
+			return errInvalidTimestamp
+		}
 	}
+
 	// Verify that the gasUsed is <= gasLimit
 	if header.GasUsed > header.GasLimit {
 		return fmt.Errorf("invalid gasUsed: have %d, gasLimit %d", header.GasUsed, header.GasLimit)
@@ -558,10 +564,13 @@ func (c *Clique) Prepare(chain consensus.ChainHeaderReader, header *types.Header
 	if parent == nil {
 		return consensus.ErrUnknownAncestor
 	}
-	header.Time = parent.Time + c.config.Period
-	if header.Time < uint64(time.Now().Unix()) {
-		header.Time = uint64(time.Now().Unix())
+	if !rcfg.UsingBVM {
+		header.Time = parent.Time + c.config.Period
+		if header.Time < uint64(time.Now().Unix()) {
+			header.Time = uint64(time.Now().Unix())
+		}
 	}
+
 	return nil
 }
 
@@ -641,6 +650,12 @@ func (c *Clique) Seal(chain consensus.ChainHeaderReader, block *types.Block, res
 		delay += time.Duration(rand.Int63n(int64(wiggle)))
 
 		log.Trace("Out-of-turn signing requested", "wiggle", common.PrettyDuration(wiggle))
+	}
+	// Set the delay to 0 when using the bvm so that blocks are always
+	// produced instantly. When running in a non-bvm network, the delay prevents
+	// the creation of invalid blocks.
+	if rcfg.UsingBVM {
+		delay = 0
 	}
 	// Sign all the things!
 	sighash, err := signFn(accounts.Account{Address: signer}, accounts.MimetypeClique, CliqueRLP(header))

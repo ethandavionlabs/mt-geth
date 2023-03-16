@@ -20,6 +20,9 @@ package state
 import (
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/rollup/dump"
+	"github.com/ethereum/go-ethereum/rollup/rcfg"
+	"golang.org/x/crypto/sha3"
 	"math/big"
 	"sort"
 	"time"
@@ -50,6 +53,15 @@ func (n *proofList) Put(key []byte, value []byte) error {
 
 func (n *proofList) Delete(key []byte) error {
 	panic("not supported")
+}
+
+func GetBvmBalanceKey(addr common.Address) common.Hash {
+	position := common.Big0
+	hasher := sha3.NewLegacyKeccak256()
+	hasher.Write(common.LeftPadBytes(addr.Bytes(), 32))
+	hasher.Write(common.LeftPadBytes(position.Bytes(), 32))
+	digest := hasher.Sum(nil)
+	return common.BytesToHash(digest)
 }
 
 // StateDB structs within the ethereum protocol are used to store anything
@@ -266,6 +278,13 @@ func (s *StateDB) Empty(addr common.Address) bool {
 
 // GetBalance retrieves the balance from the given address or 0 if object not found
 func (s *StateDB) GetBalance(addr common.Address) *big.Int {
+	if rcfg.UsingBVM {
+		// Get balance from the Bvm_ETH contract.
+		// NOTE: We may remove this feature in a future release.
+		key := GetBvmBalanceKey(addr)
+		bal := s.GetState(dump.BvmBitAddress, key)
+		return bal.Big()
+	}
 	stateObject := s.getStateObject(addr)
 	if stateObject != nil {
 		return stateObject.Balance()
@@ -392,24 +411,55 @@ func (s *StateDB) HasSuicided(addr common.Address) bool {
 
 // AddBalance adds amount to the account associated with addr.
 func (s *StateDB) AddBalance(addr common.Address, amount *big.Int) {
-	stateObject := s.GetOrNewStateObject(addr)
-	if stateObject != nil {
-		stateObject.AddBalance(amount)
+	if rcfg.UsingBVM {
+		// Mutate the storage slot inside of bvm_ETH to change balances.
+		// Note that we don't need to check for overflows or underflows here because the code that
+		// uses this codepath already checks for them. You can follow the original codepath below
+		// (stateObject.AddBalance) to confirm that there are no checks being performed here.
+		key := GetBvmBalanceKey(addr)
+		value := s.GetState(dump.BvmBitAddress, key)
+		bal := value.Big()
+		bal = bal.Add(bal, amount)
+		s.SetState(dump.BvmBitAddress, key, common.BigToHash(bal))
+	} else {
+		stateObject := s.GetOrNewStateObject(addr)
+		if stateObject != nil {
+			stateObject.AddBalance(amount)
+		}
 	}
+
 }
 
 // SubBalance subtracts amount from the account associated with addr.
 func (s *StateDB) SubBalance(addr common.Address, amount *big.Int) {
-	stateObject := s.GetOrNewStateObject(addr)
-	if stateObject != nil {
-		stateObject.SubBalance(amount)
+	if rcfg.UsingBVM {
+		// Mutate the storage slot inside of bvm_ETH to change balances.
+		// Note that we don't need to check for overflows or underflows here because the code that
+		// uses this codepath already checks for them. You can follow the original codepath below
+		// (stateObject.SubBalance) to confirm that there are no checks being performed here.
+		key := GetBvmBalanceKey(addr)
+		value := s.GetState(dump.BvmBitAddress, key)
+		bal := value.Big()
+		bal = bal.Sub(bal, amount)
+		s.SetState(dump.BvmBitAddress, key, common.BigToHash(bal))
+	} else {
+		stateObject := s.GetOrNewStateObject(addr)
+		if stateObject != nil {
+			stateObject.SubBalance(amount)
+		}
 	}
 }
 
 func (s *StateDB) SetBalance(addr common.Address, amount *big.Int) {
-	stateObject := s.GetOrNewStateObject(addr)
-	if stateObject != nil {
-		stateObject.SetBalance(amount)
+	if rcfg.UsingBVM {
+		// Mutate the storage slot inside of bvm_ETH to change balances.
+		key := GetBvmBalanceKey(addr)
+		s.SetState(dump.BvmBitAddress, key, common.BigToHash(amount))
+	} else {
+		stateObject := s.GetOrNewStateObject(addr)
+		if stateObject != nil {
+			stateObject.SetBalance(amount)
+		}
 	}
 }
 
