@@ -72,8 +72,12 @@ func WaitDeployed(ctx context.Context, b DeployBackend, tx *types.Transaction) (
 	// This matters on pre-Homestead chains: OOG in the constructor
 	// could leave an empty account behind.
 	code, err := b.CodeAt(ctx, receipt.ContractAddress, nil)
-	if err == nil && len(code) == 0 {
+	//if err == nil && len(code) == 0 {
+	//	err = ErrNoCodeAfterDeploy
+	//}
+	if err != nil && len(code) == 0 {
 		err = ErrNoCodeAfterDeploy
 	}
+
 	return receipt.ContractAddress, err
 }
