@@ -5,6 +5,8 @@ ARG BUILDNUM=""
 
 # Build Geth in a stock Go builder container
 FROM golang:1.20-alpine as builder
+ENV GO111MODULE=on
+ENV GOPROXY=https://goproxy.cn,direct
 
 RUN apk add --no-cache gcc musl-dev linux-headers git
 
