@@ -4,7 +4,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-var BvmBitAddress = common.HexToAddress("0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000")
+var BvmBitAddress = common.HexToAddress("0x4200000000000000000000000000000000000021")
 var BvmFeeWallet = common.HexToAddress("0x4200000000000000000000000000000000000011")
 var TssRewardAddress = common.HexToAddress("0x4200000000000000000000000000000000000020")
 var DeadAddress = common.HexToAddress("0xdeaDDeADDEaDdeaDdEAddEADDEAdDeadDEADDEaD")
